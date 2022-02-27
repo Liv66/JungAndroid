@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 그라데이션 -->
+    <gradient
+        android:angle="90"
+        android:centerColor="#555994"
+        android:endColor="#b5b6d2"
+        android:startColor="#555994"
+        android:type="linear" />
+    <corners
+        android:radius="0dp"/>
+
+</selector>
