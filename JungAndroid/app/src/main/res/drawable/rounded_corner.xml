@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<!--    <solid android:color="#FFFFFF"/>-->
+    <gradient
+        android:type="linear"
+        android:angle="45"
+        android:startColor="#7EF192"
+        android:endColor="#2DC897" />
+
+    <corners android:radius="30dp"/>
+    <!--윤곽선    <stroke android:width="3dp" android:color="#B1BCBE" /> -->
+<!-- 패딩   <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />-->
+</shape>

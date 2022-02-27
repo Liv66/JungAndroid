@@ -1,18 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="@drawable/lion"
+    android:orientation="vertical"
+    tools:context=".MainActivity"
+    android:weightSum="1"
+    android:paddingHorizontal="20dp">
+
+    <TextView
+        android:textAlignment="center"
+        android:layout_marginTop="70dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get the life you want!\n Save more money."
+        android:textColor="#ffff"
+        android:textSize="20dp"
+        android:textStyle="bold"/>
+
+    <View
+        android:layout_weight="0.7"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        />
+    
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Create free account"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="20dp"
+        android:background="@drawable/rounded_corner"
+        app:backgroundTint="@null"
+        />
+
+    <Button
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Continue with facebook"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="20dp"
+        android:background="@drawable/rounded_corner_blue"
+        app:backgroundTint="@null"
+        />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="Already have an account?"
+        android:textColor="#fff"
+        android:layout_gravity="center_horizontal"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
+        />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Login"
+        android:textAllCaps="false"
+        android:textColor="#fff"
+        android:textSize="20dp"
+        android:background="@drawable/rounded_corner_transparent"
+        app:backgroundTint="@null"
+        android:textStyle="bold"
+        />
+
+</LinearLayout>
