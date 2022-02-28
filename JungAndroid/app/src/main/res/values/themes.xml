@@ -12,5 +12,16 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <!--
+                액션바 지우기, NoActionBar와 똑같음
+                <item name="windowActionBar">false</item>
+                <item name="windowNoTitle">true</item>
+
+                상태바 지우기(앱을 전체화면으로 함)
+                <item name="android:windowFullscreen">true</item>
+                                                                -->
     </style>
 </resources>
