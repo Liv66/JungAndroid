@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.jungandroid.retrofit.RetrofitManager
 import com.example.jungandroid.utills.Constants.TAG
+import com.example.jungandroid.utills.RESPONSE_STATE
 import com.example.jungandroid.utills.SEARCH_TYPE
 import com.example.jungandroid.utills.onMyTextChanged
 import com.google.android.material.textfield.TextInputLayout
@@ -78,7 +80,7 @@ class MainActivity : AppCompatActivity() {
 
         /*
         익스텐션을 하지 않은 경우
-        findViewById<TextInputEditText>(R.id.search_term_edit_text).addTextChangedListener (object: TextWatcher{
+        searchTermText.addTextChangedListener (object: TextWatcher{
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 TODO("Not yet implemented")
             }
@@ -96,9 +98,7 @@ class MainActivity : AppCompatActivity() {
         //익스텐션 사용, 텍스트 변경 되었을 떄, 자동적으로 afterTextChanged 호출됨
 
         searchTermText.onMyTextChanged {
-
             //입력된 글자가 1개라도 있으면 검색 버튼 보여줌
-
             if (it.toString().count() > 0) {
                 frameSearchBtn.visibility = View.VISIBLE
                 mainScrollView.scrollTo(0, 200)
@@ -113,10 +113,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
+        //검색 버튼 클릭시
         searchBtn.setOnClickListener {
             Log.d(TAG, "MainActivity - 검색 버튼이 클릭 되었다.")
-            handleSearchButtonUi()
+
+            RetrofitManager.instance.searchPhotos(
+                searchTerm = searchTermText.toString(),
+                completion = { responseState, responseBody ->
+                    when (responseState) {
+                        RESPONSE_STATE.OKAY -> {
+                            Toast.makeText(this, "api 호출 성공 : $responseBody", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                        RESPONSE_STATE.FAIL -> {
+                            Toast.makeText(this, "api 호출 에러 : $responseBody", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                })
+            this.handleSearchButtonUi()
         }
 
     }

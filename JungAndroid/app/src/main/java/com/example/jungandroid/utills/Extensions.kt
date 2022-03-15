@@ -2,9 +2,7 @@ package com.example.jungandroid.utills
 
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.EditText
-import com.example.jungandroid.utills.Constants.TAG
 
 /**
  *         익스텐션 : 반복적으로 사용되는 클래스의 기능을 확장시켜줌
