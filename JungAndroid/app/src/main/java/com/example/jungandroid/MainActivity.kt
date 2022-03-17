@@ -118,14 +118,16 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "MainActivity - 검색 버튼이 클릭 되었다.")
 
             RetrofitManager.instance.searchPhotos(
-                searchTerm = searchTermText.toString(),
-                completion = { responseState, responseBody ->
+                searchTerm = searchTermText.text.toString(),
+                completion = { responseState, responseBody -> // 함수만 전달함
                     when (responseState) {
                         RESPONSE_STATE.OKAY -> {
+                            Log.d(TAG, "api 호출 성공 : $responseBody")
                             Toast.makeText(this, "api 호출 성공 : $responseBody", Toast.LENGTH_SHORT)
                                 .show()
                         }
                         RESPONSE_STATE.FAIL -> {
+                            Log.d(TAG, "api 호출 실패 : $responseBody")
                             Toast.makeText(this, "api 호출 에러 : $responseBody", Toast.LENGTH_SHORT)
                                 .show()
                         }

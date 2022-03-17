@@ -23,3 +23,9 @@ fun EditText.onMyTextChanged(completion: (Editable?) -> Unit) {
         }
     })
 }
+
+// 문자열이 제이슨 형태인지, 제이슨 배열 형태인지
+fun String?.isJsonObject():Boolean = this?.startsWith("{") == true && this.endsWith("}")
+
+// 문자열이 제이슨 배열인지
+fun String?.isJsonArrays() : Boolean = this?.startsWith("[") == true && this.endsWith("]")
