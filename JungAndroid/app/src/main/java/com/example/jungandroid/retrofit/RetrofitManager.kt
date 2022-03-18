@@ -1,14 +1,16 @@
 package com.example.jungandroid.retrofit
 
 import android.util.Log
+import com.example.jungandroid.model.Photo
 import com.example.jungandroid.utills.API.BASE_URL
 import com.example.jungandroid.utills.Constants.TAG
-import com.example.jungandroid.utills.RESPONSE_STATE
+import com.example.jungandroid.utills.RESPONSE_STATUS
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.create
+import java.text.SimpleDateFormat
 
 /** 리플랙션(Reflection) : 코드를 작성하는 시점에는 런타임상 컴파일된 바이트코드에서 내가 작성한 코드가
  * 어디에 위치하는지 알 수 없기때문에 바이트코드를 이용해 내가 참조하려는 값을 찾기위해 사용
@@ -36,20 +38,23 @@ class RetrofitManager {
         val instance = RetrofitManager()
 
     }
+
     /*
         Retrofit이 아니라 IRetrofit을 사용하는 이유는 Strategy 패턴을 사용하기 때문이다.
         인터페이스 패턴을 사용하면
      */
     // 레트로핏 인터페이스 가져오기
-    private val retrofit :Retrofit? = RetrofitClient.getClient(BASE_URL) // 1. retrofit 클라이언트(인스턴스)를 가져온다
-    private val iRetrofit :IRetrofit? = retrofit?.create(IRetrofit::class.java) // 2. 클라이언트 객체로 인터페이스를 구현한다.
+    private val retrofit: Retrofit? =
+        RetrofitClient.getClient(BASE_URL) // 1. retrofit 클라이언트(인스턴스)를 가져온다
+    private val iRetrofit: IRetrofit? =
+        retrofit?.create(IRetrofit::class.java) // 2. 클라이언트 객체로 인터페이스를 구현한다.
 
 //    밑은 한줄로 작성한 코드
 //    private val iRetrofit: IRetrofit? =
 //        RetrofitClient.getClient(BASE_URL)?.create(IRetrofit::class.java)
 
     // 사진검색 API 호출
-    fun searchPhotos(searchTerm: String?, completion: (RESPONSE_STATE, String) -> Unit) {
+    fun searchPhotos(searchTerm: String?, completion: (RESPONSE_STATUS, ArrayList<Photo>?) -> Unit) {
         val term = searchTerm.let {
             it // 매핑작업
         } ?: ""
@@ -58,7 +63,6 @@ class RetrofitManager {
         val call = iRetrofit?.searchPhotos(searchTerm = term).let {
             it
         } ?: return
-
 //        val call: Call<JsonElement> = iRetrofit?.searchPhotos(term) ?: return 같은 의미
 
         call.enqueue(object : retrofit2.Callback<JsonElement> {
@@ -67,13 +71,55 @@ class RetrofitManager {
             //응답 실패 했을 때
             override fun onFailure(call: Call<JsonElement>, t: Throwable) {
                 Log.d(TAG, "RetrofitManager - onFailure() called / t: $t")
-                completion(RESPONSE_STATE.FAIL, t.toString())
+                completion(RESPONSE_STATUS.FAIL, null)
             }
 
             // 응답이 성공 했을 때
             override fun onResponse(call: Call<JsonElement>, response: Response<JsonElement>) {
                 Log.d(TAG, "RetrofitManager - onResponse() called / ${response.body()}")
-                completion(RESPONSE_STATE.OKAY, response.body().toString())
+
+                when (response.code()) {
+                    200 -> {
+                        response.body()?.let {
+                            var parsedPhotoDataArray = ArrayList<Photo>()
+                            val body = it.asJsonObject
+                            val results = body.getAsJsonArray("results") // body의 results 태그
+                            val total = body.get("total").asInt
+                            if(total == 0){
+                                //데이터가 없으면 NO CONTENT로 보낸다.
+                                completion(RESPONSE_STATUS.NO_CONTENT, null)
+                            } else {
+                                results.forEach { resultItem ->
+                                    val resultItemObject: JsonObject = resultItem.asJsonObject
+                                    val user: JsonObject =
+                                        resultItemObject.get("user").asJsonObject // results의 user태그
+                                    val username: String =
+                                        user.get("username").asString // user태그의 username 값
+                                    val likesCount: Int = resultItemObject.get("likes").asInt
+                                    val thumbnailLink: String =
+                                        resultItemObject.get("urls").asJsonObject.get("thumb").asString
+
+                                    // createdAt에서 받는 날짜 형식을 바꿈
+                                    val createdAt = resultItemObject.get("created_at").asString
+
+                                    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                                    val formatter = SimpleDateFormat("yyyy년\nMM월 dd일")
+
+                                    val outputDateString = formatter.format(parser.parse(createdAt))
+
+                                    val photoItem = Photo(
+                                        author = username,
+                                        likesCount = likesCount,
+                                        thumbnail = thumbnailLink,
+                                        createdAt = outputDateString
+                                    )
+                                    parsedPhotoDataArray.add(photoItem)
+                                }
+                                completion(RESPONSE_STATUS.OKAY, parsedPhotoDataArray)
+                            }
+                        }
+                    }
+                }
             }
         })
     }

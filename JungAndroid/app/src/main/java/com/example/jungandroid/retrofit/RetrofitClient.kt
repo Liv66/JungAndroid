@@ -1,6 +1,10 @@
 package com.example.jungandroid.retrofit
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
+import com.example.jungandroid.App
 import com.example.jungandroid.utills.API
 import com.example.jungandroid.utills.Constants.TAG
 import com.example.jungandroid.utills.isJsonArrays
@@ -56,7 +60,6 @@ object RetrofitClient {
                 Log.d(TAG, "RetrofitClient - intercept() called")
                 //오리지날 리퀘스트
                 val originalRequest: Request = chain.request()
-                Log.d("##12", "originalRequest : ${originalRequest.body}")
 
                 /**쿼리 파라메터 추가하기
                 https://api.unsplash.com/photos/?client_id=YOUR_ACCESS_KEY에서
@@ -74,17 +77,24 @@ object RetrofitClient {
                 val addedUrl: HttpUrl =
                     originalRequest.url.newBuilder().addQueryParameter("client_id", API.CLIENT_ID)
                         .build()
-
-                Log.d("##12", "addedUrl $addedUrl")
-
+//
                 val finalRequest: Request = originalRequest.newBuilder()
                     .url(addedUrl)
                     .method(originalRequest.method, originalRequest.body)
                     .build()
 
-                Log.d("##12", "finalUrl ${finalRequest.body}")
+                val response = chain.proceed(finalRequest)
 
-                return chain.proceed(finalRequest)
+                if (response.code != 200) {
+
+                    Handler(Looper.getMainLooper()).post {
+                        // ui 쓰레드에서 돌아가게 해줌
+                        Toast.makeText(App.instance, "${response.code} 에러입니다.", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+
+                return response
             }
         })
 

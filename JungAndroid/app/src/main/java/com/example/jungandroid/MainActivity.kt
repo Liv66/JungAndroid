@@ -1,5 +1,6 @@
 package com.example.jungandroid
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,7 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.jungandroid.retrofit.RetrofitManager
 import com.example.jungandroid.utills.Constants.TAG
-import com.example.jungandroid.utills.RESPONSE_STATE
+import com.example.jungandroid.utills.RESPONSE_STATUS
 import com.example.jungandroid.utills.SEARCH_TYPE
 import com.example.jungandroid.utills.onMyTextChanged
 import com.google.android.material.textfield.TextInputLayout
@@ -116,24 +117,40 @@ class MainActivity : AppCompatActivity() {
         //검색 버튼 클릭시
         searchBtn.setOnClickListener {
             Log.d(TAG, "MainActivity - 검색 버튼이 클릭 되었다.")
+            this.handleSearchButtonUi()
+            val userSearchInput = searchTermText.text.toString()
 
             RetrofitManager.instance.searchPhotos(
-                searchTerm = searchTermText.text.toString(),
-                completion = { responseState, responseBody -> // 함수만 전달함
+                searchTerm = userSearchInput,
+                completion = { responseState, responseDataArrayList -> // 함수만 전달함
                     when (responseState) {
-                        RESPONSE_STATE.OKAY -> {
-                            Log.d(TAG, "api 호출 성공 : $responseBody")
-                            Toast.makeText(this, "api 호출 성공 : $responseBody", Toast.LENGTH_SHORT)
+                        RESPONSE_STATUS.OKAY -> {
+                            Log.d(TAG, "api 호출 성공 : ${responseDataArrayList?.size}")
+
+                            val intent = Intent(this, PhotoCollectionActivity::class.java)
+                            val bundle = Bundle()
+                            bundle.putSerializable("photo_array_list", responseDataArrayList)
+                            intent.putExtra("array_bundle", bundle)
+                            intent.putExtra("search_term", userSearchInput)
+                            startActivity(intent)
+                        }
+                        RESPONSE_STATUS.FAIL -> {
+                            Log.d(TAG, "api 호출 실패 : $responseDataArrayList")
+                            Toast.makeText(
+                                this,
+                                "api 호출 에러 : $responseDataArrayList",
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         }
-                        RESPONSE_STATE.FAIL -> {
-                            Log.d(TAG, "api 호출 실패 : $responseBody")
-                            Toast.makeText(this, "api 호출 에러 : $responseBody", Toast.LENGTH_SHORT)
-                                .show()
+                        RESPONSE_STATUS.NO_CONTENT -> {
+                            Toast.makeText(this, "검색 결과가 없습니다.", Toast.LENGTH_SHORT).show()
                         }
                     }
+                    progressBtn.visibility = View.INVISIBLE
+                    searchBtn.text = "검색"
+                    searchTermText.setText("")
                 })
-            this.handleSearchButtonUi()
         }
 
     }
@@ -141,11 +158,11 @@ class MainActivity : AppCompatActivity() {
     private fun handleSearchButtonUi() {
         progressBtn.visibility = View.VISIBLE
         searchBtn.text = " "
-        Handler(Looper.getMainLooper()).postDelayed(
-            {
-                progressBtn.visibility = View.INVISIBLE
-                searchBtn.text = "검색"
-            }, 1500
-        )
+//        Handler(Looper.getMainLooper()).postDelayed(
+//            {
+//                progressBtn.visibility = View.INVISIBLE
+//                searchBtn.text = "검색"
+//            }, 1500
+//        )
     }
 }
