@@ -3,6 +3,7 @@ package com.example.jungandroid
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -11,6 +12,7 @@ import com.example.jungandroid.model.Photo
 import com.example.jungandroid.recyclerview.PhotoGridRecyclerViewAdapter
 import com.example.jungandroid.utills.Constants.TAG
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.appbar.MaterialToolbar
 
 class PhotoCollectionActivity : AppCompatActivity() {
 
@@ -31,7 +33,7 @@ class PhotoCollectionActivity : AppCompatActivity() {
         val searchTerm = intent.getStringExtra("search_term")
         photoList = bundle?.getSerializable("photo_array_list") as ArrayList<Photo>
 
-        findViewById<Toolbar>(R.id.topAppBar).title = searchTerm
+        findViewById<MaterialToolbar>(R.id.topAppBar).title = searchTerm
 
         Log.d(
             TAG,
