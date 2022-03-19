@@ -12,6 +12,8 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <!-- "?attr/selectableItemBackground"의 리플색상 설정     -->
+        <item name="colorControlHighlight">#51EC40</item>
     </style>
 
     <style name="MyRadioButton" parent="Widget.Material3.CompoundButton.RadioButton">

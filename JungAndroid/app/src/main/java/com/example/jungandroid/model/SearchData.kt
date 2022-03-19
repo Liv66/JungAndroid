@@ -1,4 +1,5 @@
 package com.example.jungandroid.model
 
-class SearchData {
-}
+data class SearchData(
+    val timestamp: String, val term: String
+)

@@ -1,13 +1,12 @@
-package com.example.jungandroid
+package com.example.jungandroid.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.jungandroid.R
 import com.example.jungandroid.retrofit.RetrofitManager
 import com.example.jungandroid.utills.Constants.TAG
 import com.example.jungandroid.utills.RESPONSE_STATUS
