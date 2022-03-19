@@ -28,7 +28,14 @@ import com.example.jungandroid.utills.SharedPrefManger
 import com.example.jungandroid.utills.toSimpleString
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.jakewharton.rxbinding4.InitialValueObservable
+import com.jakewharton.rxbinding4.widget.textChanges
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.schedulers.Schedulers
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 class PhotoCollectionActivity : AppCompatActivity(),
@@ -56,6 +63,8 @@ class PhotoCollectionActivity : AppCompatActivity(),
     private lateinit var searchHistoryRecyclerView: RecyclerView
     private lateinit var mySearchHistoryRecyclerViewAdapter: SearchHistoryRecyclerViewAdapter
 
+    // 옵저버블 통합 제거를 위한 CompositeDisposable
+    private var myCompositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,6 +147,11 @@ class PhotoCollectionActivity : AppCompatActivity(),
         }
     }
 
+    override fun onDestroy() {
+        this.myCompositeDisposable.clear() // 모두 삭제
+        super.onDestroy()
+    }
+
     //앱바 작동하게 설정해줌
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         Log.d(TAG, "PhotoCollectionActivity - onCreateOptionsMenu() called")
@@ -156,7 +170,7 @@ class PhotoCollectionActivity : AppCompatActivity(),
                 when (hasExpaned) {
                     true -> {
                         Log.d(TAG, "PhotoCollectionActivity - 서치뷰 열림")
-                        linearSeaerchLayout.visibility = View.VISIBLE
+//                        linearSeaerchLayout.visibility = View.VISIBLE
                         handleSearchViewUi()
                     }
                     false -> {
@@ -168,6 +182,37 @@ class PhotoCollectionActivity : AppCompatActivity(),
 
             //서치뷰에서 에딧 텍스트를 가져온다
             mySearchViewEditText = this.findViewById(androidx.appcompat.R.id.search_src_text)
+
+            // 서치뷰에딧텍스트 옵저버블
+            val editTextChangeObservable: InitialValueObservable<CharSequence> =
+                mySearchViewEditText.textChanges()
+            val searchEditTextSubscription: Disposable =
+                // 옵저버블 오퍼레이터 추가
+                editTextChangeObservable
+                    //글자가 입력되고 나서 0.8초 후에 onNext 이벤트로 데이터 흘려보내기
+                    .debounce(800, TimeUnit.MILLISECONDS)
+                    // IO 쓰레드에서 돌리겠다.
+                    // Scheduler instance intended for IO-bound work.
+                    // 네트워크 요청, 파일 읽기, 쓰기, 디비 처리 등
+                    .subscribeOn(Schedulers.io())
+                    // 구독을  통해 이벤트 응답 받기
+                    .subscribeBy(
+                        onNext = {
+                            Log.d(TAG, "RX - onNext : $it")
+                            //TODO :: 흘러들어온 이벤트 데이터로 api 호출
+                            if (it.isNotEmpty()) {
+                                searchPhotoApiCall(it.toString())
+                            }
+                        },
+                        onComplete = {
+                            Log.d(TAG, "Rx - onComplete ")
+                        },
+                        onError = {
+                            Log.d(TAG, "Rx - onError : $it")
+                        }
+                    )
+            // 살아있는 옵저버블을 compositeDisposable에 추가
+            myCompositeDisposable.add(searchEditTextSubscription)
         }
 
         this.mySearchViewEditText.apply {
@@ -209,6 +254,10 @@ class PhotoCollectionActivity : AppCompatActivity(),
         if (userInputText.count() == 12) {
             Toast.makeText(this, "검색어는 12자까지 가능합니다", Toast.LENGTH_SHORT).show()
         }
+
+//        if(userInputText.length in 1..12){
+//            searchPhotoApiCall(userInputText) // 글자 입력할 때 마다 api를 호출 -> 즉시 api호출하면 낭비가 있다.
+//        }
 
         return true
     }
