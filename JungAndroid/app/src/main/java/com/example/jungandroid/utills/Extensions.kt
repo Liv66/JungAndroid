@@ -2,7 +2,14 @@ package com.example.jungandroid.utills
 
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.EditText
+import androidx.core.widget.addTextChangedListener
+import com.example.jungandroid.utills.Constants.TAG
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.onStart
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,4 +43,36 @@ fun String?.isJsonArrays(): Boolean = this?.startsWith("[") == true && this.ends
 fun Date.toSimpleString(): String {
     val format = SimpleDateFormat("HH:mm:ss") // 현재 시간의 Date객체 생성
     return format.format(this)
+}
+
+fun EditText.textChangeToFlow(): Flow<CharSequence?> {
+
+    // flow 콜백 받기
+    return callbackFlow<CharSequence> {
+        val listener = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                Log.d(TAG, " onTextChanged() / textChangedToFlow() 에 달려있는 텍스트 와쳐 text : $text")
+                //값 내보내기
+                trySend(text)
+            }
+
+            override fun afterTextChanged(s: Editable?) = Unit
+        }
+        //위에서 설정한 리스너 달아주기
+        addTextChangedListener(listener)
+
+        // 콜백이 사라질 때 실행됨
+        awaitClose {
+            Log.d(TAG, " - textChangeToFlow() / await 실행")
+            removeTextChangedListener(listener)
+        }
+    }.onStart {
+        Log.d(TAG, " - textChangeToFlow() / onStart 발동")
+        // Rx의 onNext와 동일하다
+        // emit으로 이벤트를 전달
+        emit(text)
+    }
 }

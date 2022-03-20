@@ -25,6 +25,7 @@ import com.example.jungandroid.retrofit.RetrofitManager
 import com.example.jungandroid.utills.Constants.TAG
 import com.example.jungandroid.utills.RESPONSE_STATUS
 import com.example.jungandroid.utills.SharedPrefManger
+import com.example.jungandroid.utills.textChangeToFlow
 import com.example.jungandroid.utills.toSimpleString
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -34,9 +35,13 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.util.*
+
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+import kotlin.coroutines.CoroutineContext
 
 class PhotoCollectionActivity : AppCompatActivity(),
     SearchView.OnQueryTextListener,
@@ -63,8 +68,15 @@ class PhotoCollectionActivity : AppCompatActivity(),
     private lateinit var searchHistoryRecyclerView: RecyclerView
     private lateinit var mySearchHistoryRecyclerViewAdapter: SearchHistoryRecyclerViewAdapter
 
-    // 옵저버블 통합 제거를 위한 CompositeDisposable
+
+    /** Rx 적용부분
+     *     // 옵저버블 통합 제거를 위한 CompositeDisposable
     private var myCompositeDisposable = CompositeDisposable()
+     */
+
+    private var myCoroutineJob: Job = Job()
+    private val myCoroutineContext: CoroutineContext
+        get() = Dispatchers.IO + myCoroutineJob
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,6 +129,16 @@ class PhotoCollectionActivity : AppCompatActivity(),
         }
     }
 
+    override fun onDestroy() {
+        /* Rx 적용 부분
+        this.myCompositeDisposable.clear() // 모두 삭제
+         */
+
+        // awaitToClose() 발동, 콜백 사라짐짐
+        myCoroutineContext.cancel()
+        super.onDestroy()
+    }
+
     private fun photoCollectionRecyclerViewSetting(photoList: ArrayList<Photo>) {
 
         // reverseLayout을 true로 하면 최근 검색어가 위로 옴
@@ -145,11 +167,6 @@ class PhotoCollectionActivity : AppCompatActivity(),
             this.scrollToPosition(mySearchHistoryRecyclerViewAdapter.itemCount - 1)
             adapter = mySearchHistoryRecyclerViewAdapter
         }
-    }
-
-    override fun onDestroy() {
-        this.myCompositeDisposable.clear() // 모두 삭제
-        super.onDestroy()
     }
 
     //앱바 작동하게 설정해줌
@@ -182,7 +199,7 @@ class PhotoCollectionActivity : AppCompatActivity(),
 
             //서치뷰에서 에딧 텍스트를 가져온다
             mySearchViewEditText = this.findViewById(androidx.appcompat.R.id.search_src_text)
-
+            /* Rx 적용 부분
             // 서치뷰에딧텍스트 옵저버블
             val editTextChangeObservable: InitialValueObservable<CharSequence> =
                 mySearchViewEditText.textChanges()
@@ -213,6 +230,29 @@ class PhotoCollectionActivity : AppCompatActivity(),
                     )
             // 살아있는 옵저버블을 compositeDisposable에 추가
             myCompositeDisposable.add(searchEditTextSubscription)
+
+             */
+
+            // Rx의 스케쥴러와 비슷
+            // IO 쓰레드에서 돌려준다.
+            GlobalScope.launch(context = myCoroutineContext) {
+
+                //editText가 변경되었을 때
+                val editTextFlow: Flow<CharSequence?> = mySearchViewEditText.textChangeToFlow()
+
+                // 흘러들어오는 데이터를 받는다.
+                editTextFlow
+                    //2초 뒤에 받는다
+                    .debounce(20000)
+                    // 공백은 받지않는다.
+                    .filter {
+                        it!!.isNotEmpty()
+                    }
+                    .onEach {
+                        Log.d(TAG, "flow로 받는다 $it")
+                    }.launchIn(this)
+            }
+
         }
 
         this.mySearchViewEditText.apply {
