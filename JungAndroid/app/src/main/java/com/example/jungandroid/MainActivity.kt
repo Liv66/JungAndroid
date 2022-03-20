@@ -13,9 +13,7 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     private lateinit var profileFragment: ProfileFragment
 
     companion object {
-
         val TAG: String = "로그"
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
